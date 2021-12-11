@@ -12,16 +12,28 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
+    public Text bestScoreText;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
-    
+    bool isIgnore;
+
     // Start is called before the first frame update
     void Start()
     {
+        if(GameManager.Instance != null)
+        {
+            isIgnore = false;
+            GameManager.Instance.OnReadData();
+        }
+        else
+        {
+            isIgnore = true;
+        }
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -36,6 +48,8 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        OnAddText();
     }
 
     private void Update()
@@ -55,9 +69,32 @@ public class MainManager : MonoBehaviour
         }
         else if (m_GameOver)
         {
+            OnAddText();
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+        }
+    }
+
+    void OnAddText()
+    {
+        if (!isIgnore)
+        {
+            if (!m_GameOver)
+            {
+                bestScoreText.text = "Best Score : " + GameManager.Instance.playerName + " : " + GameManager.Instance.GetBestScore();
+            }
+            else
+            {
+                bestScoreText.text = "Your Score : " + GameManager.Instance.newName + " : " + m_Points;
+
+                if (m_Points > GameManager.Instance.GetBestScore())
+                {
+                    GameManager.Instance.SetBestScore(m_Points);
+                    GameManager.Instance.OnSeveData();
+                }
             }
         }
     }
@@ -71,6 +108,6 @@ public class MainManager : MonoBehaviour
     public void GameOver()
     {
         m_GameOver = true;
-        GameOverText.SetActive(true);
+        GameOverText.SetActive(true);    
     }
 }
